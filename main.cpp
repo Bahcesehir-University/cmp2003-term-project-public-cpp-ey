@@ -1,31 +1,45 @@
 #include "analyzer.h"
 #include <iostream>
-#include <chrono>
+#include <chrono>  // For timing
 
-static void printZones(const std::vector<ZoneCount>& v) {
-    std::cout << "TOP_ZONES\n";
-    for (auto& x : v)
-        std::cout << x.zone << "," << x.count << "\n";
-}
-
-static void printSlots(const std::vector<SlotCount>& v) {
-    std::cout << "TOP_SLOTS\n";
-    for (auto& x : v)
-        std::cout << x.zone << "," << x.hour << "," << x.count << "\n";
-}
+// This is a simple main program to test our trip analyzer
+// It reads the SmallTrips.csv file and shows the top zones and busy slots
 
 int main() {
-    auto t0 = std::chrono::high_resolution_clock::now();
-
+    // Create a new trip analyzer object
     TripAnalyzer analyzer;
+    
+    // Start timing to see how fast our program is
+    auto startTime = std::chrono::high_resolution_clock::now();
+    
+    // Read and process the CSV file
+    std::cout << "Reading SmallTrips.csv..." << std::endl;
     analyzer.ingestFile("SmallTrips.csv");
-
-    printZones(analyzer.topZones(10));
-    printSlots(analyzer.topBusySlots(10));
-
-    auto t1 = std::chrono::high_resolution_clock::now();
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-
-    std::cout << "EXEC_MS\n" << ms << "\n";
+    
+    // Stop timing
+    auto endTime = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+    
+    // Show the top 10 zones by trip count
+    std::cout << "\n=== Top 10 Zones ===" << std::endl;
+    auto topZones = analyzer.topZones(10);
+    for (size_t i = 0; i < topZones.size(); i++) {
+        std::cout << (i + 1) << ". " << topZones[i].zone 
+                  << " - " << topZones[i].count << " trips" << std::endl;
+    }
+    
+    // Show the top 10 busy time slots
+    std::cout << "\n=== Top 10 Busy Time Slots ===" << std::endl;
+    auto topSlots = analyzer.topBusySlots(10);
+    for (size_t i = 0; i < topSlots.size(); i++) {
+        std::cout << (i + 1) << ". " << topSlots[i].zone 
+                  << " at hour " << topSlots[i].hour 
+                  << " - " << topSlots[i].count << " trips" << std::endl;
+    }
+    
+    // Show how long it took to process everything
+    std::cout << "\nProcessing time: " << duration.count() << " ms" << std::endl;
+    
     return 0;
 }
+
